@@ -1,5 +1,7 @@
-const hits = new Map();
-const LIMIT = 10, WINDOW = 60 * 60 * 1000;
+// Vercel serverless function (FREE version using Google Gemini API free tier).
+// Your key stays private on the server.
+const hits = new Map(); // best-effort rate limit (per server instance)
+const LIMIT = 10, WINDOW = 60 * 60 * 1000; // 10 requests per IP per hour
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
@@ -14,6 +16,7 @@ module.exports = async function handler(req, res) {
   if (typeof prompt !== "string" || prompt.length > 10000 || !Array.isArray(images) || images.length > 6)
     return res.status(400).json({ error: "bad request" });
 
+  // Pick any model marked "free" in Google AI Studio and set it as GEMINI_MODEL in Vercel.
   const model = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
   const parts = images.map(d => ({ inline_data: { mime_type: "image/jpeg", data: d } }));
   parts.push({ text: prompt });
