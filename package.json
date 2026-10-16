@@ -1,1 +1,8 @@
-{"name":"master-prompt-studio","version":"1.0.0","private":true}
+{
+  "name": "master-prompt-studio",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@vercel/analytics": "^1.4.1"
+  }
+}
