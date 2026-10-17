@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Master Prompt Studio</title>
+<style>
+:root{
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f6f3ff;--bg2:#e9e4ff;--card:rgba(255,255,255,.72);--line:rgba(90,60,200,.18);
+  --text:#1b1533;--muted:#5d5782;--a:#7c3aed;--b:#ec4899;--c:#06b6d4;--grid:rgba(90,60,200,.07);
+  --o1:rgba(124,58,237,.45);--o2:rgba(236,72,153,.4);--o3:rgba(6,182,212,.38);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0a0718;--bg2:#150d33;--card:rgba(20,14,48,.66);--line:rgba(180,150,255,.2);
+  --text:#f2eefc;--muted:#a9a0cf;--grid:rgba(180,150,255,.06);
+  --o1:rgba(124,58,237,.55);--o2:rgba(236,72,153,.38);--o3:rgba(6,182,212,.32);
+}}
+:root[data-theme="dark"]{
+  --bg:#0a0718;--bg2:#150d33;--card:rgba(20,14,48,.66);--line:rgba(180,150,255,.2);
+  --text:#f2eefc;--muted:#a9a0cf;--grid:rgba(180,150,255,.06);
+  --o1:rgba(124,58,237,.55);--o2:rgba(236,72,153,.38);--o3:rgba(6,182,212,.32);
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(120% 80% at 50% 0%,var(--bg2),var(--bg))}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);will-change:transform}
+.o1{width:55vmax;height:55vmax;left:-15vmax;top:-18vmax;background:var(--o1);animation:f1 22s ease-in-out infinite alternate}
+.o2{width:48vmax;height:48vmax;right:-14vmax;top:8vmax;background:var(--o2);animation:f2 26s ease-in-out infinite alternate}
+.o3{width:44vmax;height:44vmax;left:18vmax;bottom:-22vmax;background:var(--o3);animation:f3 30s ease-in-out infinite alternate}
+.grid{position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 75%)}
+@keyframes f1{to{transform:translate(12vmax,10vmax) scale(1.15)}}
+@keyframes f2{to{transform:translate(-14vmax,12vmax) scale(.9)}}
+@keyframes f3{to{transform:translate(10vmax,-12vmax) scale(1.2)}}
+@media (prefers-reduced-motion:reduce){.orb{animation:none}}
+.wrap{max-width:860px;margin:0 auto;padding:44px 20px 64px}
+.badge{display:inline-block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--line);border-radius:99px;background:var(--card);color:var(--muted);backdrop-filter:blur(10px)}
+h1{font-size:clamp(34px,7vw,60px);line-height:1.05;margin:18px 0 12px;letter-spacing:-.02em}
+h1 span{background:linear-gradient(90deg,var(--a),var(--b),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);font-size:clamp(15px,2.4vw,18px);max-width:620px;margin:0 0 28px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 20px 60px -25px rgba(80,40,200,.45)}
+.tabs{display:flex;gap:6px;padding:5px;border-radius:14px;border:1px solid var(--line);margin-bottom:18px}
+.tab{flex:1;border:0;background:transparent;color:var(--muted);font:600 14px inherit;font-family:inherit;padding:11px 10px;border-radius:10px;cursor:pointer;transition:.2s}
+.tab[aria-selected="true"]{background:linear-gradient(90deg,var(--a),var(--b));color:#fff;box-shadow:0 6px 20px -8px var(--a)}
+label.l{display:block;font-size:13px;font-weight:600;margin:16px 0 8px;color:var(--muted)}
+textarea{width:100%;min-height:110px;resize:vertical;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--text);padding:14px;font:16px/1.5 inherit;font-family:inherit;outline:none}
+textarea:focus,.drop:focus-visible{border-color:var(--a);box-shadow:0 0 0 3px color-mix(in srgb,var(--a) 25%,transparent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:transparent;color:var(--text);padding:8px 14px;border-radius:99px;font:500 13px inherit;font-family:inherit;cursor:pointer;transition:.15s}
+.chip[aria-pressed="true"]{background:color-mix(in srgb,var(--a) 22%,transparent);border-color:var(--a)}
+.drop{display:block;border:2px dashed var(--line);border-radius:16px;padding:26px;text-align:center;cursor:pointer;color:var(--muted);transition:.2s}
+.drop:hover,.drop.over{border-color:var(--b);background:color-mix(in srgb,var(--b) 8%,transparent)}
+.drop input{display:none}
+video{max-width:100%;max-height:260px;border-radius:12px;margin-top:12px;display:none}
+.frames{display:flex;gap:6px;overflow-x:auto;margin-top:10px}
+.frames img{height:56px;border-radius:8px;border:1px solid var(--line)}
+.go{width:100%;margin-top:20px;border:0;border-radius:14px;padding:15px;font:700 16px inherit;font-family:inherit;color:#fff;cursor:pointer;background:linear-gradient(90deg,var(--a),var(--b),var(--c));background-size:200% 100%;transition:.4s;box-shadow:0 14px 34px -14px var(--b)}
+.go:hover{background-position:100% 0;transform:translateY(-1px)}
+.go:disabled{opacity:.55;cursor:wait;transform:none}
+.out{margin-top:22px;display:none}
+.out h2{font-size:18px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.out pre{white-space:pre-wrap;word-wrap:break-word;margin:0;font:15px/1.65 inherit;font-family:inherit;padding:18px;border-radius:14px;border:1px solid var(--line);background:color-mix(in srgb,var(--bg) 55%,transparent)}
+.mini{border:1px solid var(--line);background:transparent;color:var(--text);padding:7px 14px;border-radius:10px;font:600 13px inherit;font-family:inherit;cursor:pointer}
+.err{color:#e11d48;font-size:14px;margin-top:12px;display:none}
+.theme{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:14px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="grid"></div></div>
+<button class="mini theme" id="theme" aria-label="Toggle theme">◐</button>
+<main class="wrap">
+  <span class="badge">✦ AI Prompt Lab</span>
+  <h1>Master Prompt <span>Studio</span></h1>
+  <p class="sub">Drop in a simple idea, or upload a video you love. Get a powerful, ready-to-use Master Prompt built to go viral.</p>
+
+  <section class="card">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-idea" aria-selected="true">💡 From an idea</button>
+      <button class="tab" role="tab" id="t-video" aria-selected="false">🎬 From a video or photo</button>
+    </div>
+
+    <div id="p-idea">
+      <label class="l" for="idea">Your idea</label>
+      <textarea id="idea" placeholder="e.g. A cat who runs a tiny coffee shop at night"></textarea>
+    </div>
+
+    <div id="p-video" class="hide">
+      <label class="drop" id="drop" tabindex="0">
+        <input type="file" id="file" accept="video/*,image/*" multiple>
+        <div style="font-size:28px">⬆️</div>
+        <div id="dropTxt"><b>Click or drag a video or photo(s) here</b><br><small>Claude studies its style, composition, lighting and mood</small></div>
+      </label>
+      <video id="vid" muted playsinline controls></video>
+      <div class="frames" id="frames"></div>
+      <button class="mini" id="rm" style="display:none;margin-top:10px">✕ Remove</button>
+      <label class="l" for="note">Anything to add? (optional)</label>
+      <textarea id="note" style="min-height:64px" placeholder="e.g. Use this style for a travel vlog about Sri Lanka"></textarea>
+    </div>
+
+    <label class="l">Platform</label>
+    <div class="chips" id="plat"></div>
+    <label class="l">Vibe</label>
+    <div class="chips" id="vibe"></div>
+    <input id="vibeCustom" type="text" maxlength="60" placeholder="…or type your own vibe (optional)" style="width:100%;margin-top:10px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);padding:11px 14px;font:15px inherit;font-family:inherit;outline:none">
+
+    <label class="l">Output format</label>
+    <div class="chips" id="fmt"></div>
+
+    <button class="go" id="go">✨ Generate Master Prompt</button>
+    <div class="err" id="err"></div>
+
+    <div class="out" id="out">
+      <h2><span>Your Master Prompt</span><button class="mini" id="copy">Copy</button></h2>
+      <pre id="res"></pre>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var mode="idea",plat="TikTok",vibe="Funny",frames=[],busy=false;
+async function toB64(b){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(",")[1])};r.onerror=rej;r.readAsDataURL(b)})}
+async function useSample(){
+  var f=async function(prompt,opts){
+    var imgs=[];for(var i=0;i<(opts.images||[]).length;i++)imgs.push(await toB64(opts.images[i]));
+    var res=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:prompt,images:imgs})});
+    if(!res.ok){var e=new Error("http "+res.status);e.code=res.status===429?"rate_limited":"http_"+res.status;throw e}
+    var j=await res.json();if(opts.onText)opts.onText({text:j.text});return {text:j.text};
+  };
+  f.limits=async function(){return {images:{maxCount:6}}};
+  return f;
+}
+function chips(id,list,def,cb){var box=$(id);list.forEach(function(n){var b=document.createElement("button");b.className="chip";b.textContent=n;b.setAttribute("aria-pressed",n===def);b.onclick=function(){[].forEach.call(box.children,function(c){c.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true");cb(n)};box.appendChild(b)})}
+chips("plat",["TikTok","Instagram Reels","YouTube Shorts","Facebook Reels"],"TikTok",function(n){plat=n});
+chips("vibe",["Funny","Cinematic","Emotional","Educational","Mysterious","Satisfying","Inspirational","Dramatic","Heartwarming","Shocking","Dark & Moody","Luxury","Nostalgic","Dreamy","Futuristic","Horror","Wholesome","Adventurous","Minimalist","Retro","Epic","Calm & Cozy","Controversial","Storytelling"],"Funny",function(n){vibe=n});
+var fmt="Standard prompt";
+chips("fmt",["Standard prompt","JSON prompt"],"Standard prompt",function(n){fmt=n});
+function clean(t){return t.replace(/^\s*```(?:json)?\s*/i,"").replace(/\s*```\s*$/,"")}
+function rules(){
+  var json=fmt.indexOf("JSON")===0,img=(mode==="video"&&kind==="image"),s="FINAL REQUIREMENTS (these override anything above that conflicts):\n";
+  s+="1) REALISM: First analyze everything the user provided (idea, notes, photo or video, vibe, platform). Then build the prompt so the result looks like an authentic, believable real-world outcome: natural lighting, true-to-life proportions, skin, textures and materials, plausible locations and physics, camera-realistic depth of field, subtle natural imperfections and grain. Avoid anything that reads as fantasy, CGI, plastic, over-smoothed or obviously AI (distorted hands or text, extra limbs). Put those faults in the negative prompt, and add realism keywords. If the idea is fantastical, ground it in photographic realism.\n";
+  if(img)s+="2) SIZE: Every image must be 4:5 portrait, exactly 1080x1350 pixels. State this clearly (aspect ratio 4:5, 1080x1350, e.g. --ar 4:5) in the aspect ratio part and inside the ready-to-use template.\n";
+  if(json)s+=(img?"3) ":"2) ")+"FORMAT: Return ONLY one valid JSON object. No markdown code fences, no text before or after it. Use clear snake_case keys, one per section, nested objects or arrays where helpful"+(img?", include \"aspect_ratio\":\"4:5\",\"width\":1080,\"height\":1350":"")+", include a \"realism\" object and a \"negative_prompt\" field, and finish with a \"ready_to_use_prompt\" string holding the complete prompt as plain text.";
+  else s+=(img?"3) ":"2) ")+"FORMAT: Return a standard, human-readable prompt with clearly labelled sections, in plain text (no JSON).";
+  return s;
+}
+
+function setMode(m){mode=m;$("t-idea").setAttribute("aria-selected",m==="idea");$("t-video").setAttribute("aria-selected",m==="video");$("p-idea").classList.toggle("hide",m!=="idea");$("p-video").classList.toggle("hide",m!=="video")}
+$("t-idea").onclick=function(){setMode("idea")};$("t-video").onclick=function(){setMode("video")};
+
+$("theme").onclick=function(){var r=document.documentElement,dark=getComputedStyle(r).getPropertyValue("--bg").trim()==="#0a0718";r.setAttribute("data-theme",dark?"light":"dark")};
+
+function showErr(m){var e=$("err");e.textContent=m;e.style.display=m?"block":"none"}
+
+var drop=$("drop"),file=$("file");
+["dragover","dragenter"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("over")})});
+["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("over")})});
+drop.addEventListener("drop",function(e){if(e.dataTransfer.files.length)handleFiles(e.dataTransfer.files)});
+file.onchange=function(){if(file.files.length)handleFiles(file.files)};
+
+function seek(v,t){return new Promise(function(res){v.onseeked=function(){res()};v.currentTime=t})}
+var kind="video",stopped=false;
+function resetUI(){frames=[];stopped=true;$("frames").innerHTML="";var v=$("vid");try{v.pause()}catch(e){}v.removeAttribute("src");v.load();v.style.display="none";file.value="";$("dropTxt").innerHTML="<b>Click or drag a video or photo(s) here</b><br><small>Claude studies its style, composition, lighting and mood</small>";showErr("")}
+new MutationObserver(function(){$("rm").style.display=$("frames").children.length?"inline-block":"none"}).observe($("frames"),{childList:true});
+$("rm").onclick=resetUI;
+function imgToBlob(f){return new Promise(function(res,rej){var u=URL.createObjectURL(f),im=new Image();im.onload=function(){var s=Math.min(1,1024/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(im.naturalWidth*s));c.height=Math.max(1,Math.round(im.naturalHeight*s));c.getContext("2d").drawImage(im,0,0,c.width,c.height);c.toBlob(function(b){b?res(b):rej()},"image/jpeg",.85)};im.onerror=function(){rej()};im.src=u})}
+async function handleFiles(list){
+  var fs=[].slice.call(list);showErr("");stopped=false;
+  var vid=fs.filter(function(f){return /^video\//.test(f.type)})[0];
+  if(vid){kind="video";return handleVideo(vid)}
+  var imgs=fs.filter(function(f){return /^image\//.test(f.type)}).slice(0,6);
+  if(!imgs.length){showErr("Please choose a video or a photo.");return}
+  kind="image";frames=[];$("frames").innerHTML="";
+  var v=$("vid");v.pause();v.removeAttribute("src");v.style.display="none";
+  $("dropTxt").innerHTML="<b>Reading photo"+(imgs.length>1?"s":"")+"…</b>";
+  try{
+    for(var i=0;i<imgs.length;i++){var b=await imgToBlob(imgs[i]);if(stopped)break;frames.push(b);var im=document.createElement("img");im.src=URL.createObjectURL(b);im.style.height="110px";$("frames").appendChild(im)}
+    if(stopped){resetUI();return}$("dropTxt").innerHTML="<b>"+frames.length+" photo"+(frames.length>1?"s":"")+" ready</b><br><small>click to replace</small>";
+  }catch(e){frames=[];$("frames").innerHTML="";$("dropTxt").innerHTML="<b>Click or drag a video or photo(s) here</b>";showErr("Couldn't read that photo. Try a JPG, PNG or WebP image.")}
+}
+async function handleVideo(f){
+  showErr("");frames=[];$("frames").innerHTML="";
+  if(!/^video\//.test(f.type)){showErr("Please choose a video file.");return}
+  $("dropTxt").innerHTML="<b>"+f.name.replace(/[<>&]/g,"")+"</b><br><small>Reading frames…</small>";
+  var v=$("vid");v.style.display="block";v.src=URL.createObjectURL(f);
+  try{
+    await new Promise(function(res,rej){v.onloadedmetadata=res;v.onerror=function(){rej()}});
+    var d=(isFinite(v.duration)&&v.duration>0)?v.duration:1,n=6,c=document.createElement("canvas"),w=Math.min(640,v.videoWidth||640);
+    c.width=w;c.height=Math.round(w*(v.videoHeight||360)/(v.videoWidth||640));
+    var x=c.getContext("2d");
+    for(var i=0;i<n;i++){
+      await seek(v,d*(i+.5)/n);x.drawImage(v,0,0,c.width,c.height);
+      var b=await new Promise(function(r){c.toBlob(r,"image/jpeg",.8)});
+      if(!b)continue;if(stopped)break;frames.push(b);var im=document.createElement("img");im.src=URL.createObjectURL(b);$("frames").appendChild(im);
+    }
+    if(stopped){resetUI();return}v.currentTime=0;
+    $("dropTxt").innerHTML="<b>"+f.name.replace(/[<>&]/g,"")+"</b><br><small>"+n+" frames ready · "+Math.round(d)+"s video · click to replace</small>";
+  }catch(e){showErr("Couldn't read that video in your browser. Try an MP4 or WebM file.");frames=[]}
+}
+
+function buildImagePrompt(){
+  var v=$("vibeCustom").value.trim()||vibe,note=$("note").value.trim();
+  return "You are an expert visual stylist and AI image prompt engineer. Study the attached reference photo(s) very carefully and work out its STYLE DNA: the repeatable look, not the content. Then write a reusable MASTER STYLE PROMPT that a creator can paste into any AI image generator (Midjourney, DALL·E, Flux, Stable Diffusion, ChatGPT, etc.) to make many NEW posts in this same style, about any subject.\n\n"+
+  "CRITICAL RULES: (1) Do NOT simply describe or recreate what is in the photo. The specific people, objects, place and scene are only evidence of the style. (2) The master prompt must work for ANY subject, so leave the subject open with a [YOUR SUBJECT] placeholder. (3) If there are several photos, find the common style thread across them. (4) This is a still IMAGE prompt: no video timing, camera movement or audio.\n\n"+
+  "Finished posts are for: "+plat+". Overall vibe to emphasize: "+v+".\n\n"+
+  "Output these labelled sections: STYLE NAME (a short memorable name); STYLE DNA (2-3 sentences capturing what makes this look recognizable); COMPOSITION RULES (framing, angles, subject placement, negative space, depth); CAMERA & LENS LOOK; LIGHTING STYLE; COLOR PALETTE & GRADING (name specific colors, contrast, saturation, film or filter feel); TEXTURE & RENDER QUALITY (grain, sharpness, finish, medium such as photo, 3D, illustration); MOOD & ATMOSPHERE; SUBJECT TREATMENT (how any subject is posed, styled or presented in this style); BACKGROUND & SETTING STYLE (the kinds of environments that fit); GRAPHIC ELEMENTS (text overlays, borders, layout, only if the photo has them); CONSISTENCY KEYWORDS (a short comma-separated list to keep every image on-style); NEGATIVE PROMPT; ASPECT RATIO.\n\n"+
+  "Then give: READY-TO-USE TEMPLATE, one paragraph with the full style baked in and [YOUR SUBJECT] as the only thing to swap; and 3 EXAMPLE USES, the template filled in with three very different subjects to prove it is reusable. Be specific and vivid, no filler. Output only this, no intro or commentary.\n\n"+
+  (note?"The creator wants to use this style for: "+note+". Make that the first example use, but keep the master prompt itself reusable for any subject.":"");
+}
+function buildImagePromptOld(){
+  var v=$("vibeCustom").value.trim()||vibe,note=$("note").value.trim();
+  return "You are an expert AI image prompt engineer. Look carefully at the attached reference photo(s) and write a MASTER IMAGE PROMPT: a single, detailed, copy-paste-ready text prompt that an AI image generator (Midjourney, DALL·E, Flux, Stable Diffusion, etc.) can use to generate a new photo of this exact type and style. This is a still IMAGE prompt, NOT a video prompt: do not include scenes, timing, camera movement, audio or editing.\n\n"+
+  "Finished image is for: "+plat+". Overall vibe: "+v+".\n\n"+
+  "Use these labelled sections: SUBJECT, COMPOSITION & FRAMING, CAMERA, LENS & SETTINGS, LIGHTING, COLOR PALETTE & GRADING, STYLE & MEDIUM, MOOD & ATMOSPHERE, BACKGROUND & ENVIRONMENT, TEXTURE & FINE DETAILS, NEGATIVE PROMPT (what to avoid), ASPECT RATIO & QUALITY KEYWORDS. Finish with ONE-PARAGRAPH VERSION: the whole prompt condensed into a single paragraph ready to paste. Be specific and vivid, no filler. Output only the prompt, no intro or commentary.\n\n"+
+  (note?"The new image should be about: "+note+" (keep the same photographic style).":"Describe the subject in a reusable way and mark the main topic with [YOUR SUBJECT] so it can be swapped.");
+}
+function buildPrompt(){return buildCore()+"\n\n"+rules()}
+function buildCore(){
+  if(mode==="video"&&kind==="image")return buildImagePrompt();
+  var base="You are a world-class viral short-form video strategist and prompt engineer. Write a MASTER PROMPT: a single, detailed, copy-paste-ready prompt that someone can give to an AI video/image generator or script writer to create a short video likely to go viral.\n\n"+
+  "Target platform: "+plat+". Vibe: "+($("vibeCustom").value.trim()||vibe)+".\n\n"+
+  "Format the Master Prompt with these labelled sections: HOOK (first 1-2 seconds), CONCEPT, SCENE-BY-SCENE BREAKDOWN (with timing), VISUAL STYLE (camera, lighting, color, setting), CHARACTERS/SUBJECTS, AUDIO & MUSIC, TEXT OVERLAYS, PACING & EDITING, CAPTION + HASHTAGS, CALL TO ACTION. Be specific and vivid, no filler. Output only the Master Prompt, no intro or commentary.\n\n";
+  if(mode==="idea")return base+"The user's idea: "+$("idea").value.trim();
+  return base+(kind==="image"?"Attached are one or more reference photos. Analyze the subject, composition, framing, lighting, color palette, style and mood, then write a Master Prompt that recreates that exact look and turns it into a viral short video or image concept.":"Attached are evenly spaced frames from a sample video, in order. Analyze its visual style, hook, pacing, framing, color grade, text style and mood, then write a Master Prompt that recreates that exact style.")+($("note").value.trim()?" The new video should be about: "+$("note").value.trim():" Make the prompt reusable for any topic by marking the topic with [YOUR TOPIC].");
+}
+
+$("go").onclick=async function(){
+  if(busy)return;showErr("");
+  if(mode==="idea"&&!$("idea").value.trim()){showErr("Type an idea first.");return}
+  if(mode==="video"&&!frames.length){showErr("Upload a video or photo first.");return}
+  var sample=await useSample();
+  if(!sample){showErr("AI generation isn't available in this view. Open the published page while signed in to Claude.");return}
+  var opts={modelTier:"default"};
+  if(mode==="video"){
+    var max=6;
+    try{var lim=await sample.limits();if(!lim.images){showErr("Image analysis isn't enabled for this page.");return}max=lim.images.maxCount||6}catch(e){}
+    var sel=frames;
+    if(frames.length>max){sel=[];for(var k=0;k<max;k++)sel.push(frames[Math.floor(k*frames.length/max)])}
+    opts.images=sel;
+  }
+  busy=true;$("go").disabled=true;$("go").textContent="Crafting your prompt…";
+  $("out").style.display="block";$("res").textContent="Thinking…";
+  opts.onText=function(t){$("res").textContent=clean(t.text)};
+  try{var r=await sample(buildPrompt(),opts);$("res").textContent=clean(r.text);$("out").scrollIntoView({behavior:"smooth",block:"nearest"})}
+  catch(e){$("out").style.display="none";showErr(e&&e.code==="not_granted"?"Permission was declined, so I can't generate.":e&&e.code==="rate_limited"?"Too many requests. Wait a moment and try again.":e&&e.code==="image_rejected"?"That image or video couldn't be processed. Try a different file.":"Something went wrong ("+((e&&(e.code||e.message))||"unknown")+"). Please try again.")}
+  busy=false;$("go").disabled=false;$("go").textContent="✨ Generate Master Prompt";
+};
+
+$("copy").onclick=function(){
+  var t=$("res").textContent;
+  var done=function(){$("copy").textContent="Copied ✓";setTimeout(function(){$("copy").textContent="Copy"},1500)};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fb)}else fb();
+  function fb(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");done()}catch(e){}a.remove()}
+};
+})();
+</script>
+</body>
+</html>
